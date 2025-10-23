@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const user_module_1 = require("./user/user.module");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
+const login_module_1 = require("./login/login.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -27,10 +28,12 @@ exports.AppModule = AppModule = __decorate([
                 password: process.env.DB_PASSWORD,
                 port: Number(process.env.DB_PORT),
                 username: process.env.DB_USERNAME,
-                synchronize: true,
                 entities: [`${__dirname}/**/*.entity{.js,.ts}`],
+                migrations: [`${__dirname}/.migration/{.ts, *.js}`],
+                migrationsRun: true,
             }),
-            user_module_1.UserModule
+            user_module_1.UserModule,
+            login_module_1.LoginModule,
         ],
         controllers: [],
         providers: [],
