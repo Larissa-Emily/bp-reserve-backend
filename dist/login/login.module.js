@@ -27,10 +27,10 @@ exports.LoginModule = LoginModule = __decorate([
                 global: true,
                 secret: constants_1.jwtConstants.secret,
                 signOptions: { expiresIn: '1h' },
-            })
+            }),
         ],
         controllers: [login_controller_1.LoginController],
-        providers: [login_service_1.LoginService],
+        providers: [login_service_1.LoginService,],
         exports: [login_service_1.LoginService]
     })
 ], LoginModule);

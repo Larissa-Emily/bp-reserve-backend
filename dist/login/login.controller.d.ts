@@ -5,6 +5,13 @@ export declare class LoginController {
     constructor(loginService: LoginService);
     login(loginDto: LoginRequestDto): Promise<{
         access_token: string;
+        user: {
+            id: number;
+            name: string;
+            email: string;
+            sector: string;
+            role: string;
+        };
     }>;
     getProfile(req: any): any;
 }

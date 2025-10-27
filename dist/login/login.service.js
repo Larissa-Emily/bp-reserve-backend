@@ -60,35 +60,41 @@ let LoginService = class LoginService {
         this.jwtService = jwtService;
     }
     async validateUser(loginDto) {
-        const { email, password } = loginDto;
-        const user = await this.userRepository.findOne({
-            where: { email: loginDto.email }
-        });
-        if (!user) {
-            throw new common_1.UnauthorizedException('Usuário não encontrado');
+        try {
+            const user = await this.userRepository.findOne({
+                where: { email: loginDto.email }
+            });
+            if (!user) {
+                throw new common_1.UnauthorizedException('Usuário não encontrado');
+            }
+            const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+            if (!isPasswordValid) {
+                throw new common_1.UnauthorizedException('Senha incorreta');
+            }
+            const payload = {
+                sub: user.id,
+                name: user.name,
+                sector: user.sector,
+                email: user.email,
+                role: user.role,
+            };
+            return {
+                access_token: await this.jwtService.signAsync(payload),
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    sector: user.sector,
+                    role: user.role,
+                },
+            };
         }
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            throw new common_1.UnauthorizedException('Senha incorreta');
+        catch (err) {
+            if (err instanceof common_1.UnauthorizedException) {
+                throw err;
+            }
+            throw new common_1.UnauthorizedException('Erro interno ao validar usuário');
         }
-        const payload = {
-            sub: user.id,
-            name: user.name,
-            sector: user.sector,
-            email: user.email,
-            role: user.role,
-        };
-        return {
-            access_token: await this.jwtService.signAsync(payload)
-        };
-    }
-    ;
-    catch(err) {
-        console.error('Erro ao validar usuário:', err);
-        if (err instanceof common_1.UnauthorizedException) {
-            throw err;
-        }
-        throw new common_1.UnauthorizedException('Erro interno ao validar usuário');
     }
 };
 exports.LoginService = LoginService;

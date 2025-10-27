@@ -12,13 +12,14 @@ import { jwtConstants } from './constants';
     TypeOrmModule.forFeature([UserEntity]),
     UserModule,
     JwtModule.register({
-      global: true,
+      global: true, //nao será necessário importar o JwtModule em outro lugar
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '1h' },
-    })
+      signOptions: { expiresIn: '1h' }, // duração de cada token
+    }),
   ],
   controllers: [LoginController],
-  providers: [LoginService],
+  providers: [LoginService, ],
   exports: [LoginService]
 })
 export class LoginModule { }
+ 

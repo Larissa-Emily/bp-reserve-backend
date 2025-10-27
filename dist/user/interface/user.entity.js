@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserEntity = void 0;
 const typeorm_1 = require("typeorm");
+const reserve_entity_1 = require("../../reserve/interface/reserve.entity");
 let UserEntity = class UserEntity {
     id;
     name;
@@ -18,6 +19,7 @@ let UserEntity = class UserEntity {
     email;
     password;
     role;
+    reservations;
 };
 exports.UserEntity = UserEntity;
 __decorate([
@@ -44,6 +46,10 @@ __decorate([
     (0, typeorm_1.Column)({ name: 'role', nullable: false }),
     __metadata("design:type", String)
 ], UserEntity.prototype, "role", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => reserve_entity_1.ReserveEntity, reservation => reservation.user),
+    __metadata("design:type", Array)
+], UserEntity.prototype, "reservations", void 0);
 exports.UserEntity = UserEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'user' })
 ], UserEntity);

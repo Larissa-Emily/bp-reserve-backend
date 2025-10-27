@@ -12,12 +12,19 @@ const user_module_1 = require("./user/user.module");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
 const login_module_1 = require("./login/login.module");
+const auth_guard_1 = require("./guards/auth.guard");
+const roles_guard_1 = require("./guards/roles.guard");
+const core_1 = require("@nestjs/core");
+const room_module_1 = require("./room/room.module");
+const reserve_controller_1 = require("./reserve/reserve.controller");
+const reserve_module_1 = require("./reserve/reserve.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            login_module_1.LoginModule,
             config_1.ConfigModule.forRoot({
                 envFilePath: ['.env.development.local', '.env.development'],
             }),
@@ -28,15 +35,27 @@ exports.AppModule = AppModule = __decorate([
                 password: process.env.DB_PASSWORD,
                 port: Number(process.env.DB_PORT),
                 username: process.env.DB_USERNAME,
-                entities: [`${__dirname}/**/*.entity{.js,.ts}`],
+                entities: [__dirname + '/**/*.entity{.ts,.js}'],
                 migrations: [`${__dirname}/.migration/{.ts, *.js}`],
                 migrationsRun: true,
+                synchronize: true,
             }),
             user_module_1.UserModule,
             login_module_1.LoginModule,
+            room_module_1.RoomModule,
+            reserve_module_1.ReserveModule,
+            reserve_module_1.ReserveModule
         ],
-        controllers: [],
-        providers: [],
+        controllers: [reserve_controller_1.ReserveController],
+        providers: [{
+                provide: core_1.APP_GUARD,
+                useClass: auth_guard_1.AuthGuard,
+            },
+            {
+                provide: core_1.APP_GUARD,
+                useClass: roles_guard_1.RolesGuard,
+            }
+        ],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

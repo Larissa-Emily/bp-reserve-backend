@@ -26,7 +26,7 @@ __decorate([
     __metadata("design:type", String)
 ], LoginRequestDto.prototype, "password", void 0);
 class LoginResponseDto {
-    message;
+    access_token;
     user;
 }
 exports.LoginResponseDto = LoginResponseDto;

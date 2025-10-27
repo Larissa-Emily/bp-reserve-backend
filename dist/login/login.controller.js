@@ -16,7 +16,8 @@ exports.LoginController = void 0;
 const common_1 = require("@nestjs/common");
 const login_service_1 = require("./login.service");
 const loginUser_dto_1 = require("./dto/loginUser.dto");
-const auth_guard_1 = require("../authentication/auth.guard");
+const public_decorator_1 = require("../decorators/public.decorator");
+const roles_decorator_1 = require("../decorators/roles.decorator");
 let LoginController = class LoginController {
     loginService;
     constructor(loginService) {
@@ -31,6 +32,7 @@ let LoginController = class LoginController {
 };
 exports.LoginController = LoginController;
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
@@ -39,8 +41,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], LoginController.prototype, "login", null);
 __decorate([
+    (0, roles_decorator_1.Roles)("manager"),
     (0, common_1.Get)('/profile'),
-    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),

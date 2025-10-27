@@ -15,32 +15,46 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const common_1 = require("@nestjs/common");
 const user_service_1 = require("./user.service");
+const roles_decorator_1 = require("../decorators/roles.decorator");
 let UserController = class UserController {
-    useService;
-    constructor(useService) {
-        this.useService = useService;
+    userService;
+    constructor(userService) {
+        this.userService = userService;
     }
     async getAllUsers() {
-        return this.useService.getAllUsers();
+        return this.userService.getAllUsers();
     }
     async createUser(createUser) {
-        return this.useService.createUser(createUser);
+        return this.userService.createUser(createUser);
+    }
+    remove(id) {
+        return this.userService.remove(+id);
     }
 };
 exports.UserController = UserController;
 __decorate([
+    (0, roles_decorator_1.Roles)("manager"),
     (0, common_1.Get)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "getAllUsers", null);
 __decorate([
+    (0, roles_decorator_1.Roles)("manager"),
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "createUser", null);
+__decorate([
+    (0, roles_decorator_1.Roles)("manager"),
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], UserController.prototype, "remove", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)('user'),
     __metadata("design:paramtypes", [user_service_1.UserService])

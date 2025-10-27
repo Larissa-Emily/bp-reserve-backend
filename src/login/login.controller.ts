@@ -6,23 +6,26 @@ import {
     HttpStatus,
     Post,
     Request,
-    UseGuards
 } from '@nestjs/common';
 import { LoginService } from './login.service';
-import { LoginRequestDto } from "./dto/loginUser.dto"
-import { AuthGuard } from '../authentication/auth.guard';
+import { LoginRequestDto } from "./dto/loginUser.dto";
+import { Public } from '../decorators/public.decorator'; // importa o decorator
+import { Roles } from 'src/decorators/roles.decorator';
 @Controller('login')
 export class LoginController {
     constructor(private loginService: LoginService) { }
 
+    @Public() // rota publica
     @HttpCode(HttpStatus.OK)
     @Post()
     async login(@Body() loginDto: LoginRequestDto) {
         return this.loginService.validateUser(loginDto);
     }
+
+    //  rota  protegida
+    @Roles("manager")
     @Get('/profile')
-    @UseGuards(AuthGuard)  
     getProfile(@Request() req) {
-        return req.user; 
+        return req.user;
     }
 }

@@ -10,8 +10,12 @@ export class LoginRequestDto {
 
 }
 export class LoginResponseDto {
-  message: string;
+  access_token: string; // ← IMPORTANTE: access_token com underscore
   user: {
+    id: number;
+    name: string;
     email: string;
+    sector: string;
+    role: string;
   };
 }

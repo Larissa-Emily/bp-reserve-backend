@@ -56,6 +56,16 @@ let UserService = class UserService {
     constructor(userRepository) {
         this.userRepository = userRepository;
     }
+    async getUserById(id) {
+        const user = await this.userRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new common_1.NotFoundException(`Usuário com ID ${id} não encontrado`);
+        }
+        return user;
+    }
+    async getAllUsers() {
+        return this.userRepository.find();
+    }
     async createUser(createUserDto) {
         const saltOrRounds = 10;
         const passwordHashed = await bcrypt.hash(createUserDto.password, saltOrRounds);
@@ -64,8 +74,10 @@ let UserService = class UserService {
             password: passwordHashed,
         });
     }
-    async getAllUsers() {
-        return this.userRepository.find();
+    async remove(id) {
+        const user = await this.getUserById(id);
+        await this.userRepository.remove(user);
+        return { message: `Usuário ${user.name} foi deletado com sucesso` };
     }
 };
 exports.UserService = UserService;

@@ -8,6 +8,12 @@ export declare class LoginService {
     constructor(userRepository: Repository<UserEntity>, jwtService: JwtService);
     validateUser(loginDto: LoginRequestDto): Promise<{
         access_token: string;
+        user: {
+            id: number;
+            name: string;
+            email: string;
+            sector: string;
+            role: string;
+        };
     }>;
-    catch(err: unknown): void;
 }
