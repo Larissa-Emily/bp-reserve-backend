@@ -4,28 +4,28 @@ import { ReserveEntity } from '../../reserve/interface/reserve.entity'; // Impor
 @Entity('rooms')
 export class RoomEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'varchar', length: 100 })
-  name: string;
+  name!: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  description: string;
+  description!: string;
 
   @Column({ type: 'int' })
-  capacity: number;
+  capacity!: number;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  location: string;
+  location!: string;
 
   @Column({ type: 'boolean', default: true })
-  isAvailable: boolean;
+  isAvailable!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
    @OneToMany(() => ReserveEntity, reservation => reservation.room)
-  reservations: ReserveEntity[]; // ← ADICIONADO: Relação inversa
+  reservations!: ReserveEntity[]; // ← ADICIONADO: Relação inversa
 }

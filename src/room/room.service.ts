@@ -4,14 +4,16 @@ import { Repository } from 'typeorm';
 import { RoomEntity } from './interface/room.entity';
 import { CreateRoomDto } from './dto/createRoom.dto';
 import { UpdateRoomDto } from './dto/updateRoom.dto';
-
+import { ReserveEntity } from '../reserve/interface/reserve.entity';
 @Injectable()
 export class RoomService {
   constructor(
     @InjectRepository(RoomEntity)
     private readonly roomRepository: Repository<RoomEntity>,
-  ) {}
 
+    @InjectRepository(ReserveEntity)
+    private readonly reserveRepository: Repository<ReserveEntity>,
+  ) { }
   // Criar sala
   async create(createRoomDto: CreateRoomDto): Promise<RoomEntity> {
     // Verifica se já existe uma sala com esse nome
@@ -65,9 +67,20 @@ export class RoomService {
   }
 
   // Deletar sala
-  async remove(id: number): Promise<void> {
-    const room = await this.findOne(id);
+  async remove(id: number): Promise<{ message: string }> {
+    const room = await this.roomRepository.findOne({ where: { id } });
+
+    if (!room) {
+      throw new NotFoundException("Sala não encontrada");
+    }
+
+    // Aqui deleta todas as reservas da sala selecionada
+    await this.reserveRepository.delete({ room: { id } })
+
+    // Aqui deleta a sala
     await this.roomRepository.remove(room);
+
+    return { message: 'Sala e reservas deletadas com sucesso!' }
   }
 
   // Buscar salas disponíveis

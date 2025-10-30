@@ -1,8 +1,7 @@
 import {
     Injectable,
-    NotFoundException,
     ConflictException,
-    BadRequestException,
+    NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -21,16 +20,7 @@ export class ReserveService {
         private readonly userService: UserService,
     ) { }
 
-    /** Converte "HH:MM" para minutos do dia */
-    private timeToMinutes(time: string): number {
-        const [hours, minutes] = time.split(':').map(Number);
-        return hours * 60 + minutes;
-    }
 
-    /** Formata data (YYYY-MM-DD) */
-    private formatDate(date: Date): string {
-        return date.toISOString().split('T')[0];
-    }
 
     /** 🔍 Validações de reserva */
     private async validateReservation(
@@ -40,33 +30,33 @@ export class ReserveService {
         const { date, startTime, endTime, roomId, userId } = dto;
 
         // 🧩 1. Verificação de campos obrigatórios
-        if (!roomId) throw new BadRequestException('O ID da sala é obrigatório.');
-        if (!userId) throw new BadRequestException('O ID do usuário é obrigatório.');
-        if (!date) throw new BadRequestException('A data da reserva é obrigatória.');
+        if (!roomId) throw new NotFoundException('O ID da sala é obrigatório.');
+        if (!userId) throw new NotFoundException('O ID do usuário é obrigatório.');
+        if (!date) throw new NotFoundException('A data da reserva é obrigatória.');
         if (!startTime || !endTime)
-            throw new BadRequestException('Os horários de início e término são obrigatórios.');
+            throw new NotFoundException('Os horários de início e término são obrigatórios.');
 
         // 🧱 2. Verifica se a sala existe e está disponível
         const room = await this.roomService.findOne(roomId);
         if (!room) throw new NotFoundException(`Sala com ID ${roomId} não encontrada.`);
         if (!room.isAvailable)
-            throw new BadRequestException(`A sala "${room.name}" não está disponível para reservas.`);
+            throw new NotFoundException(`A sala "${room.name}" não está disponível para reservas.`);
 
         // 👤 3. Verifica se o usuário existe
         const user = await this.userService.getUserById(userId);
         if (!user) throw new NotFoundException(`Usuário com ID ${userId} não encontrado.`);
 
         // 📅 4. Verificações de tempo
-        // Força a data a ser interpretada como local, não UTC
         const [year, month, day] = date.split('-').map(Number);
-        const reservationDate = new Date(year, month - 1, day);
-        const startDateTime = new Date(year, month - 1, day, ...startTime.split(':').map(Number));
-        const endDateTime = new Date(year, month - 1, day, ...endTime.split(':').map(Number));
-
+        const [startHour, startMinute] = startTime.split(':').map(Number);
+        const [endHour, endMinute] = endTime.split(':').map(Number);
+        // Cria datas no fuso local
+        const startDateTime = new Date(year, month - 1, day, startHour, startMinute);
+        const endDateTime = new Date(year, month - 1, day, endHour, endMinute);
         const now = new Date();
 
         if (startDateTime < now) {
-            throw new BadRequestException(
+            throw new NotFoundException(
                 'Não é permitido reservar uma sala para um horário no passado.',
             );
         }
@@ -74,10 +64,10 @@ export class ReserveService {
         const durationMinutes =
             (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60);
         if (durationMinutes < 60) {
-            throw new BadRequestException('A duração mínima de uma reserva é de 1 hora.');
+            throw new NotFoundException('A duração mínima de uma reserva é de 1 hora.');
         }
         if (startDateTime >= endDateTime) {
-            throw new BadRequestException(
+            throw new NotFoundException(
                 'O horário de término deve ser posterior ao horário de início.',
             );
         }
@@ -86,9 +76,7 @@ export class ReserveService {
         const overlappingReservations = await this.reservationRepository
             .createQueryBuilder('reservation')
             .where('reservation.roomId = :roomId', { roomId })
-            .andWhere('reservation.date = :date', {
-                date: this.formatDate(reservationDate),
-            })
+            .andWhere('reservation.date = :date', { date })
             .andWhere(
                 '(reservation.startTime < :endTime AND reservation.endTime > :startTime)',
                 { startTime, endTime },
@@ -110,38 +98,16 @@ export class ReserveService {
 
     /** 🟢 Criar reserva */
     async create(createReservationDto: CreateReservationDto): Promise<ReserveEntity> {
-        console.log('🔵 [ReservationService.create] Dados recebidos:', createReservationDto);
-
         await this.validateReservation(createReservationDto);
 
         const reservation = this.reservationRepository.create(createReservationDto);
         const savedReservation = await this.reservationRepository.save(reservation);
-
-        console.log('✅ [ReservationService.create] Reserva criada:', savedReservation);
         return savedReservation;
     }
 
-    /** 📋 Listar todas as reservas (gerente) */
+    /** 📋 Listar todas as reservas */
     async findAll(): Promise<ReserveEntity[]> {
         return await this.reservationRepository.find({
-            relations: ['room', 'user'],
-            order: { date: 'ASC', startTime: 'ASC' },
-        });
-    }
-
-    /** 👤 Listar reservas por usuário */
-    async findByUser(userId: number): Promise<ReserveEntity[]> {
-        return await this.reservationRepository.find({
-            where: { userId },
-            relations: ['room', 'user'],
-            order: { date: 'ASC', startTime: 'ASC' },
-        });
-    }
-
-    /** 🏢 Listar reservas por sala */
-    async findByRoom(roomId: number): Promise<ReserveEntity[]> {
-        return await this.reservationRepository.find({
-            where: { roomId },
             relations: ['room', 'user'],
             order: { date: 'ASC', startTime: 'ASC' },
         });
@@ -159,7 +125,18 @@ export class ReserveService {
 
         return reservation;
     }
+    async findByUser(userId: number): Promise<ReserveEntity[]> {
+        const reservations = await this.reservationRepository.find({
+            where: { user: { id: userId } },
+            relations: ['room', 'user'],
+        });
 
+        if (!reservations.length) {
+            throw new NotFoundException(`Nenhuma reserva encontrada para o usuário ${userId}`);
+        }
+
+        return reservations;
+    }
     async update(
         id: number,
         updateReservationDto: UpdateReservationDto,
@@ -173,7 +150,7 @@ export class ReserveService {
             requestingUserRole !== 'manager' &&
             reservation.userId !== requestingUserId
         ) {
-            throw new BadRequestException(
+            throw new NotFoundException(
                 'Você não tem permissão para atualizar esta reserva.',
             );
         }
@@ -185,10 +162,7 @@ export class ReserveService {
                 ...updateReservationDto,
                 userId: reservation.userId,
                 roomId: reservation.roomId,
-                date:
-                    reservation.date instanceof Date
-                        ? reservation.date.toISOString().split('T')[0]
-                        : reservation.date,
+                date: updateReservationDto.date || reservation.date, // pega a nova data, ou a antiga
             },
             id,
         );
@@ -213,7 +187,7 @@ export class ReserveService {
             requestingUserRole !== 'manager' &&
             reservation.userId !== requestingUserId
         ) {
-            throw new BadRequestException(
+            throw new NotFoundException(
                 'Você não tem permissão para cancelar esta reserva.',
             );
         }

@@ -11,7 +11,7 @@ const common_1 = require("@nestjs/common");
 const user_module_1 = require("./user/user.module");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
-const login_module_1 = require("./login/login.module");
+const auth_module_1 = require("./login/auth.module");
 const auth_guard_1 = require("./guards/auth.guard");
 const roles_guard_1 = require("./guards/roles.guard");
 const core_1 = require("@nestjs/core");
@@ -24,7 +24,7 @@ exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            login_module_1.LoginModule,
+            auth_module_1.LoginModule,
             config_1.ConfigModule.forRoot({
                 envFilePath: ['.env.development.local', '.env.development'],
             }),
@@ -38,10 +38,10 @@ exports.AppModule = AppModule = __decorate([
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
                 migrations: [`${__dirname}/.migration/{.ts, *.js}`],
                 migrationsRun: true,
-                synchronize: true,
+                synchronize: process.env.NODE_ENV !== 'production', // Use essa abordagem
             }),
             user_module_1.UserModule,
-            login_module_1.LoginModule,
+            auth_module_1.LoginModule,
             room_module_1.RoomModule,
             reserve_module_1.ReserveModule,
             reserve_module_1.ReserveModule
@@ -49,11 +49,11 @@ exports.AppModule = AppModule = __decorate([
         controllers: [reserve_controller_1.ReserveController],
         providers: [{
                 provide: core_1.APP_GUARD,
-                useClass: auth_guard_1.AuthGuard,
+                useClass: auth_guard_1.AuthGuard, // valida token
             },
             {
                 provide: core_1.APP_GUARD,
-                useClass: roles_guard_1.RolesGuard,
+                useClass: roles_guard_1.RolesGuard, // valida role
             }
         ],
     })

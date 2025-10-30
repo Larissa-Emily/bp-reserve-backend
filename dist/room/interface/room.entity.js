@@ -11,17 +11,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RoomEntity = void 0;
 const typeorm_1 = require("typeorm");
-const reserve_entity_1 = require("../../reserve/interface/reserve.entity");
+const reserve_entity_1 = require("../../reserve/interface/reserve.entity"); // Importa a entidade de Reserva
 let RoomEntity = class RoomEntity {
-    id;
-    name;
-    description;
-    capacity;
-    location;
-    isAvailable;
-    createdAt;
-    updatedAt;
-    reservations;
 };
 exports.RoomEntity = RoomEntity;
 __decorate([

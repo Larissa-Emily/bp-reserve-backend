@@ -5,34 +5,34 @@ import { UserEntity } from '../../user/interface/user.entity'; // Importa a enti
 @Entity('reservations')
 export class ReserveEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'date' })
-  date: Date;
+  date!: string;
 
   @Column({ type: 'varchar', length: 5 }) // HH:MM
-  startTime: string;
+  startTime!: string;
 
   @Column({ type: 'varchar', length: 5 }) // HH:MM
-  endTime: string;
+  endTime!: string;
 
   @Column()
-  roomId: number;
+  roomId!: number;
 
   @ManyToOne(() => RoomEntity, room => room.reservations)
   @JoinColumn({ name: 'roomId' })
-  room: RoomEntity;
+  room!: RoomEntity;
 
   @Column()
-  userId: number;
+  userId!: number;
 
   @ManyToOne(() => UserEntity, user => user.reservations)
   @JoinColumn({ name: 'userId' })
-  user: UserEntity;
+  user!: UserEntity;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

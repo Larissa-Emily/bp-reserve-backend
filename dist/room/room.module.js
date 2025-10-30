@@ -11,14 +11,15 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const room_entity_1 = require("./interface/room.entity");
 const room_service_1 = require("./room.service");
-const room_controller_1 = require("./room.controller");
+const room_controller_1 = require("./room.controller"); // se você tiver
+const reserve_entity_1 = require("../reserve/interface/reserve.entity");
 let RoomModule = class RoomModule {
 };
 exports.RoomModule = RoomModule;
 exports.RoomModule = RoomModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([room_entity_1.RoomEntity])
+            typeorm_1.TypeOrmModule.forFeature([room_entity_1.RoomEntity, reserve_entity_1.ReserveEntity])
         ],
         controllers: [room_controller_1.RoomController],
         providers: [room_service_1.RoomService],

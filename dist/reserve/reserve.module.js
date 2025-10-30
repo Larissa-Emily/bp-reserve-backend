@@ -13,7 +13,7 @@ const reserve_service_1 = require("./reserve.service");
 const reserve_controller_1 = require("./reserve.controller");
 const reserve_entity_1 = require("./interface/reserve.entity");
 const room_module_1 = require("../room/room.module");
-const user_module_1 = require("../user/user.module");
+const user_module_1 = require("../user/user.module"); // ← VERIFIQUE O CAMINHO AQUI TAMBÉM
 let ReserveModule = class ReserveModule {
 };
 exports.ReserveModule = ReserveModule;

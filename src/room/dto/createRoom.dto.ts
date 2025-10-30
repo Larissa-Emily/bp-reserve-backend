@@ -4,7 +4,7 @@ export class CreateRoomDto {
   @IsString()
   @MinLength(3, { message: 'O nome deve ter no mínimo 3 caracteres' })
   @MaxLength(100, { message: 'O nome deve ter no máximo 100 caracteres' })
-  name: string;
+  name!: string;
 
   @IsString()
   @IsOptional()
@@ -13,7 +13,7 @@ export class CreateRoomDto {
 
   @IsInt({ message: 'A capacidade deve ser um número inteiro' })
   @Min(1, { message: 'A capacidade deve ser no mínimo 1' })
-  capacity: number;
+  capacity!: number;
 
   @IsString()
   @IsOptional()

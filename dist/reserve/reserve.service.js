@@ -20,63 +20,60 @@ const reserve_entity_1 = require("./interface/reserve.entity");
 const room_service_1 = require("../room/room.service");
 const user_service_1 = require("../user/user.service");
 let ReserveService = class ReserveService {
-    reservationRepository;
-    roomService;
-    userService;
     constructor(reservationRepository, roomService, userService) {
         this.reservationRepository = reservationRepository;
         this.roomService = roomService;
         this.userService = userService;
     }
-    timeToMinutes(time) {
-        const [hours, minutes] = time.split(':').map(Number);
-        return hours * 60 + minutes;
-    }
-    formatDate(date) {
-        return date.toISOString().split('T')[0];
-    }
+    /** 🔍 Validações de reserva */
     async validateReservation(dto, existingReservationId) {
         const { date, startTime, endTime, roomId, userId } = dto;
+        // 🧩 1. Verificação de campos obrigatórios
         if (!roomId)
-            throw new common_1.BadRequestException('O ID da sala é obrigatório.');
+            throw new common_1.NotFoundException('O ID da sala é obrigatório.');
         if (!userId)
-            throw new common_1.BadRequestException('O ID do usuário é obrigatório.');
+            throw new common_1.NotFoundException('O ID do usuário é obrigatório.');
         if (!date)
-            throw new common_1.BadRequestException('A data da reserva é obrigatória.');
+            throw new common_1.NotFoundException('A data da reserva é obrigatória.');
         if (!startTime || !endTime)
-            throw new common_1.BadRequestException('Os horários de início e término são obrigatórios.');
+            throw new common_1.NotFoundException('Os horários de início e término são obrigatórios.');
+        // 🧱 2. Verifica se a sala existe e está disponível
         const room = await this.roomService.findOne(roomId);
         if (!room)
             throw new common_1.NotFoundException(`Sala com ID ${roomId} não encontrada.`);
         if (!room.isAvailable)
-            throw new common_1.BadRequestException(`A sala "${room.name}" não está disponível para reservas.`);
+            throw new common_1.NotFoundException(`A sala "${room.name}" não está disponível para reservas.`);
+        // 👤 3. Verifica se o usuário existe
         const user = await this.userService.getUserById(userId);
         if (!user)
             throw new common_1.NotFoundException(`Usuário com ID ${userId} não encontrado.`);
+        // 📅 4. Verificações de tempo
         const [year, month, day] = date.split('-').map(Number);
-        const reservationDate = new Date(year, month - 1, day);
-        const startDateTime = new Date(year, month - 1, day, ...startTime.split(':').map(Number));
-        const endDateTime = new Date(year, month - 1, day, ...endTime.split(':').map(Number));
+        const [startHour, startMinute] = startTime.split(':').map(Number);
+        const [endHour, endMinute] = endTime.split(':').map(Number);
+        // Cria datas no fuso local
+        const startDateTime = new Date(year, month - 1, day, startHour, startMinute);
+        const endDateTime = new Date(year, month - 1, day, endHour, endMinute);
         const now = new Date();
         if (startDateTime < now) {
-            throw new common_1.BadRequestException('Não é permitido reservar uma sala para um horário no passado.');
+            throw new common_1.NotFoundException('Não é permitido reservar uma sala para um horário no passado.');
         }
         const durationMinutes = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60);
         if (durationMinutes < 60) {
-            throw new common_1.BadRequestException('A duração mínima de uma reserva é de 1 hora.');
+            throw new common_1.NotFoundException('A duração mínima de uma reserva é de 1 hora.');
         }
         if (startDateTime >= endDateTime) {
-            throw new common_1.BadRequestException('O horário de término deve ser posterior ao horário de início.');
+            throw new common_1.NotFoundException('O horário de término deve ser posterior ao horário de início.');
         }
+        // ⏰ 5. Verifica sobreposição
         const overlappingReservations = await this.reservationRepository
             .createQueryBuilder('reservation')
             .where('reservation.roomId = :roomId', { roomId })
-            .andWhere('reservation.date = :date', {
-            date: this.formatDate(reservationDate),
-        })
+            .andWhere('reservation.date = :date', { date })
             .andWhere('(reservation.startTime < :endTime AND reservation.endTime > :startTime)', { startTime, endTime })
             .getMany();
         const hasOverlap = overlappingReservations.some((res) => {
+            // Ignora a própria reserva no update
             if (existingReservationId && res.id === existingReservationId)
                 return false;
             return true;
@@ -85,34 +82,21 @@ let ReserveService = class ReserveService {
             throw new common_1.ConflictException('Já existe uma reserva sobreposta para esta sala e horário.');
         }
     }
+    /** 🟢 Criar reserva */
     async create(createReservationDto) {
-        console.log('🔵 [ReservationService.create] Dados recebidos:', createReservationDto);
         await this.validateReservation(createReservationDto);
         const reservation = this.reservationRepository.create(createReservationDto);
         const savedReservation = await this.reservationRepository.save(reservation);
-        console.log('✅ [ReservationService.create] Reserva criada:', savedReservation);
         return savedReservation;
     }
+    /** 📋 Listar todas as reservas */
     async findAll() {
         return await this.reservationRepository.find({
             relations: ['room', 'user'],
             order: { date: 'ASC', startTime: 'ASC' },
         });
     }
-    async findByUser(userId) {
-        return await this.reservationRepository.find({
-            where: { userId },
-            relations: ['room', 'user'],
-            order: { date: 'ASC', startTime: 'ASC' },
-        });
-    }
-    async findByRoom(roomId) {
-        return await this.reservationRepository.find({
-            where: { roomId },
-            relations: ['room', 'user'],
-            order: { date: 'ASC', startTime: 'ASC' },
-        });
-    }
+    /** 🔍 Buscar reserva por ID */
     async findOne(id) {
         const reservation = await this.reservationRepository.findOne({
             where: { id },
@@ -122,31 +106,43 @@ let ReserveService = class ReserveService {
             throw new common_1.NotFoundException(`Reserva com ID ${id} não encontrada.`);
         return reservation;
     }
+    async findByUser(userId) {
+        const reservations = await this.reservationRepository.find({
+            where: { user: { id: userId } },
+            relations: ['room', 'user'],
+        });
+        if (!reservations.length) {
+            throw new common_1.NotFoundException(`Nenhuma reserva encontrada para o usuário ${userId}`);
+        }
+        return reservations;
+    }
     async update(id, updateReservationDto, requestingUserId, requestingUserRole) {
         const reservation = await this.findOne(id);
+        // 🔒 Permissão
         if (requestingUserRole !== 'manager' &&
             reservation.userId !== requestingUserId) {
-            throw new common_1.BadRequestException('Você não tem permissão para atualizar esta reserva.');
+            throw new common_1.NotFoundException('Você não tem permissão para atualizar esta reserva.');
         }
+        // ✅ Valida nova reserva
         await this.validateReservation({
             ...reservation,
             ...updateReservationDto,
             userId: reservation.userId,
             roomId: reservation.roomId,
-            date: reservation.date instanceof Date
-                ? reservation.date.toISOString().split('T')[0]
-                : reservation.date,
+            date: updateReservationDto.date || reservation.date, // pega a nova data, ou a antiga
         }, id);
         Object.assign(reservation, updateReservationDto);
         const updatedReservation = await this.reservationRepository.save(reservation);
         console.log('✅ [ReservationService.update] Reserva atualizada:', updatedReservation);
         return updatedReservation;
     }
+    /** ❌ Cancelar reserva */
     async remove(id, requestingUserId, requestingUserRole) {
         const reservation = await this.findOne(id);
+        // 🔒 Permissão
         if (requestingUserRole !== 'manager' &&
             reservation.userId !== requestingUserId) {
-            throw new common_1.BadRequestException('Você não tem permissão para cancelar esta reserva.');
+            throw new common_1.NotFoundException('Você não tem permissão para cancelar esta reserva.');
         }
         await this.reservationRepository.remove(reservation);
         console.log('✅ [ReservationService.remove] Reserva cancelada:', id);

@@ -13,22 +13,22 @@ exports.AuthGuard = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const constants_1 = require("../login/constants");
-const public_decorator_1 = require("../decorators/public.decorator");
+const public_decorator_1 = require("../decorators/public.decorator"); // adiciona
 const core_1 = require("@nestjs/core");
 let AuthGuard = class AuthGuard {
-    jwtService;
-    reflector;
-    constructor(jwtService, reflector) {
+    constructor(jwtService, reflector // para ler metadados das rotas (publica ou protegida)
+    ) {
         this.jwtService = jwtService;
         this.reflector = reflector;
     }
     async canActivate(context) {
+        // verificar se a rota é publica
         const isPublic = this.reflector.getAllAndOverride(public_decorator_1.IS_PUBLIC_KEY, [
             context.getHandler(),
             context.getClass(),
         ]);
         if (isPublic) {
-            return true;
+            return true; // libera sem verificar token
         }
         const request = context.switchToHttp().getRequest();
         console.log('Authorization header:', request.headers['authorization']);
@@ -42,13 +42,14 @@ let AuthGuard = class AuthGuard {
             });
             request['user'] = payload;
         }
-        catch {
+        catch (_a) {
             throw new common_1.UnauthorizedException();
         }
         return true;
     }
     extractTokenFromHeader(request) {
-        const [type, token] = request.headers.authorization?.split(' ') ?? [];
+        var _a, _b;
+        const [type, token] = (_b = (_a = request.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(' ')) !== null && _b !== void 0 ? _b : [];
         return type === 'Bearer' ? token : undefined;
     }
 };
@@ -56,6 +57,7 @@ exports.AuthGuard = AuthGuard;
 exports.AuthGuard = AuthGuard = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [jwt_1.JwtService,
-        core_1.Reflector])
+        core_1.Reflector // para ler metadados das rotas (publica ou protegida)
+    ])
 ], AuthGuard);
 //# sourceMappingURL=auth.guard.js.map

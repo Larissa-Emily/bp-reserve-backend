@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LoginModule } from './login/login.module';
+import { LoginModule } from './login/auth.module';
 import { AuthGuard } from './guards/auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
@@ -25,7 +25,7 @@ import { ReserveModule } from './reserve/reserve.module';
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       migrations: [`${__dirname}/.migration/{.ts, *.js}`],
       migrationsRun: true,
-      synchronize: true,
+    synchronize: process.env.NODE_ENV !== 'production', // Use essa abordagem
     }),
     UserModule,
     LoginModule,

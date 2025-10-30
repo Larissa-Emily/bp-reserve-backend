@@ -3,81 +3,62 @@ import { ReserveService } from './reserve.service';
 import { CreateReservationDto } from './dto/createReservation.dto';
 import { UpdateReservationDto } from './dto/updateReservation.dto';
 import { Roles } from '../decorators/roles.decorator';
-import type { Request } from 'express'; // Para acessar o usuário do token
+import type { Request } from 'express';
+import { ReserveEntity } from './interface/reserve.entity';
 
-// Interface para o payload do token (se você já tiver uma, use-a)
 interface JwtPayload {
-    sub: number; 
-    name: string;
-    sector: string;
-    email: string;
-    role: string
-
+  sub: number;
+  name: string;
+  sector: string;
+  email: string;
+  role: string;
 }
 
 @Controller('reservation')
 export class ReserveController {
-    constructor(private readonly reserveService: ReserveService) { }
+  constructor(private readonly reserveService: ReserveService) { }
 
-    // Criar reserva (qualquer usuário logado)
-    @Roles('user', 'manager')
-    @Post()
-    async create(@Body() createReservationDto: CreateReservationDto, @Req() req: Request) {
-        const user = req.user as JwtPayload; // Obtém o usuário do token
-        createReservationDto.userId = user.sub; // Garante que o userId é do usuário logado
+  // Criar reserva
+  @Roles('user', 'manager')
+  @Post()
+  async create(@Body() dto: CreateReservationDto, @Req() req: Request) {
+    const user = req.user as JwtPayload;
+    dto.userId = user.sub;
+    return this.reserveService.create(dto);
+  }
 
-        console.log('🔵 [POST /reservation] Criando reserva para sala:', createReservationDto.roomId);
-        return this.reserveService.create(createReservationDto);
-    }
+  // Listar todas as reservas
+  @Roles('user', 'manager')
+  @Get()
+  async findAll(): Promise<ReserveEntity[]> {
+    return this.reserveService.findAll();
+  }
 
-    // Listar todas as reservas (apenas managers)
-    @Roles('manager')
-    @Get()
-    async findAll() {
-        console.log('🔵 [GET /reservation] Listando todas as reservas');
-        return this.reserveService.findAll();
-    }
+  // Buscar reserva por ID
+  @Roles('user', 'manager')
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.reserveService.findOne(+id);
+  }
+@Roles('user', 'manager')
+@Get('user/:userId')
+async findByUser(@Param('userId') userId: string) {
+  return this.reserveService.findByUser(+userId);
+}
+  // Atualizar reserva
+  @Roles('user', 'manager')
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() dto: UpdateReservationDto, @Req() req: Request) {
+    const user = req.user as JwtPayload;
+    return this.reserveService.update(+id, dto, user.sub, user.role);
+  }
 
-    // Listar minhas reservas (usuário logado)
-    @Roles('user', 'manager')
-    @Get('my')
-    async findMyReservations(@Req() req: Request) {
-        const user = req.user as JwtPayload;
-        console.log(`🔵 [GET /reservation/my] Listando reservas do usuário: ${user.sub}`);
-        return this.reserveService.findByUser(user.sub);
-    }
-
-    // Listar reservas de uma sala específica (todos os usuários logados)
-    @Roles('user', 'manager')
-    @Get('room/:roomId')
-    async findByRoom(@Param('roomId') roomId: string) {
-        console.log(`🔵 [GET /reservation/room/:roomId] Listando reservas da sala: ${roomId}`);
-        return this.reserveService.findByRoom(+roomId);
-    }
-
-    // Buscar reserva por ID (todos os usuários logados)
-    @Roles('user', 'manager')
-    @Get(':id')
-    async findOne(@Param('id') id: string) {
-        console.log(`🔵 [GET /reservation/:id] Buscando reserva: ${id}`);
-        return this.reserveService.findOne(+id);
-    }
-
-    // Atualizar reserva (usuário responsável ou manager)
-    @Roles('user', 'manager')
-    @Patch(':id')
-    async update(@Param('id') id: string, @Body() updateReservationDto: UpdateReservationDto, @Req() req: Request) {
-        const user = req.user as JwtPayload;
-        console.log(`🔵 [PATCH /reservation/:id] Atualizando reserva ${id} pelo usuário ${user.sub}`);
-        return this.reserveService.update(+id, updateReservationDto, user.sub, user.role);
-    }
-
-    // Cancelar/Deletar reserva (usuário responsável ou manager)
-    @Roles('user', 'manager')
-    @Delete(':id')
-    async remove(@Param('id') id: string, @Req() req: Request) {
-        const user = req.user as JwtPayload;
-        console.log(`🔵 [DELETE /reservation/:id] Cancelando reserva ${id} pelo usuário ${user.sub}`);
-        return this.reserveService.remove(+id, user.sub, user.role);
-    }
+  // Cancelar reserva
+  @Roles('user', 'manager')
+  @Delete(':id')
+  async remove(@Param('id') id: string, @Req() req: Request) {
+    const user = req.user as JwtPayload;
+    console.log(`🔵 [DELETE /reservation/:id] Cancelando ${id} pelo usuário ${user.sub}`);
+    return this.reserveService.remove(+id, user.sub, user.role);
+  }
 }

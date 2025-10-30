@@ -11,19 +11,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReserveEntity = void 0;
 const typeorm_1 = require("typeorm");
-const room_entity_1 = require("../../room/interface/room.entity");
-const user_entity_1 = require("../../user/interface/user.entity");
+const room_entity_1 = require("../../room/interface/room.entity"); // Importa a entidade de Sala
+const user_entity_1 = require("../../user/interface/user.entity"); // Importa a entidade de Usuário
 let ReserveEntity = class ReserveEntity {
-    id;
-    date;
-    startTime;
-    endTime;
-    roomId;
-    room;
-    userId;
-    user;
-    createdAt;
-    updatedAt;
 };
 exports.ReserveEntity = ReserveEntity;
 __decorate([
@@ -32,14 +22,16 @@ __decorate([
 ], ReserveEntity.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'date' }),
-    __metadata("design:type", Date)
+    __metadata("design:type", String)
 ], ReserveEntity.prototype, "date", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', length: 5 }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 5 }) // HH:MM
+    ,
     __metadata("design:type", String)
 ], ReserveEntity.prototype, "startTime", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', length: 5 }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 5 }) // HH:MM
+    ,
     __metadata("design:type", String)
 ], ReserveEntity.prototype, "endTime", void 0);
 __decorate([

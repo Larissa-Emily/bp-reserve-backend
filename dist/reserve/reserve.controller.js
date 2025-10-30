@@ -19,41 +19,35 @@ const createReservation_dto_1 = require("./dto/createReservation.dto");
 const updateReservation_dto_1 = require("./dto/updateReservation.dto");
 const roles_decorator_1 = require("../decorators/roles.decorator");
 let ReserveController = class ReserveController {
-    reserveService;
     constructor(reserveService) {
         this.reserveService = reserveService;
     }
-    async create(createReservationDto, req) {
+    // Criar reserva
+    async create(dto, req) {
         const user = req.user;
-        createReservationDto.userId = user.sub;
-        console.log('🔵 [POST /reservation] Criando reserva para sala:', createReservationDto.roomId);
-        return this.reserveService.create(createReservationDto);
+        dto.userId = user.sub;
+        return this.reserveService.create(dto);
     }
+    // Listar todas as reservas
     async findAll() {
-        console.log('🔵 [GET /reservation] Listando todas as reservas');
         return this.reserveService.findAll();
     }
-    async findMyReservations(req) {
-        const user = req.user;
-        console.log(`🔵 [GET /reservation/my] Listando reservas do usuário: ${user.sub}`);
-        return this.reserveService.findByUser(user.sub);
-    }
-    async findByRoom(roomId) {
-        console.log(`🔵 [GET /reservation/room/:roomId] Listando reservas da sala: ${roomId}`);
-        return this.reserveService.findByRoom(+roomId);
-    }
+    // Buscar reserva por ID
     async findOne(id) {
-        console.log(`🔵 [GET /reservation/:id] Buscando reserva: ${id}`);
         return this.reserveService.findOne(+id);
     }
-    async update(id, updateReservationDto, req) {
-        const user = req.user;
-        console.log(`🔵 [PATCH /reservation/:id] Atualizando reserva ${id} pelo usuário ${user.sub}`);
-        return this.reserveService.update(+id, updateReservationDto, user.sub, user.role);
+    async findByUser(userId) {
+        return this.reserveService.findByUser(+userId);
     }
+    // Atualizar reserva
+    async update(id, dto, req) {
+        const user = req.user;
+        return this.reserveService.update(+id, dto, user.sub, user.role);
+    }
+    // Cancelar reserva
     async remove(id, req) {
         const user = req.user;
-        console.log(`🔵 [DELETE /reservation/:id] Cancelando reserva ${id} pelo usuário ${user.sub}`);
+        console.log(`🔵 [DELETE /reservation/:id] Cancelando ${id} pelo usuário ${user.sub}`);
         return this.reserveService.remove(+id, user.sub, user.role);
     }
 };
@@ -68,28 +62,12 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ReserveController.prototype, "create", null);
 __decorate([
-    (0, roles_decorator_1.Roles)('manager'),
+    (0, roles_decorator_1.Roles)('user', 'manager'),
     (0, common_1.Get)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ReserveController.prototype, "findAll", null);
-__decorate([
-    (0, roles_decorator_1.Roles)('user', 'manager'),
-    (0, common_1.Get)('my'),
-    __param(0, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], ReserveController.prototype, "findMyReservations", null);
-__decorate([
-    (0, roles_decorator_1.Roles)('user', 'manager'),
-    (0, common_1.Get)('room/:roomId'),
-    __param(0, (0, common_1.Param)('roomId')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], ReserveController.prototype, "findByRoom", null);
 __decorate([
     (0, roles_decorator_1.Roles)('user', 'manager'),
     (0, common_1.Get)(':id'),
@@ -98,6 +76,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], ReserveController.prototype, "findOne", null);
+__decorate([
+    (0, roles_decorator_1.Roles)('user', 'manager'),
+    (0, common_1.Get)('user/:userId'),
+    __param(0, (0, common_1.Param)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ReserveController.prototype, "findByUser", null);
 __decorate([
     (0, roles_decorator_1.Roles)('user', 'manager'),
     (0, common_1.Patch)(':id'),

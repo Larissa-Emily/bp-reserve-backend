@@ -12,11 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateReservationDto = void 0;
 const class_validator_1 = require("class-validator");
 class CreateReservationDto {
-    date;
-    startTime;
-    endTime;
-    roomId;
-    userId;
 }
 exports.CreateReservationDto = CreateReservationDto;
 __decorate([

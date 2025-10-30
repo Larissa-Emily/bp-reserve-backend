@@ -17,12 +17,15 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const room_entity_1 = require("./interface/room.entity");
+const reserve_entity_1 = require("../reserve/interface/reserve.entity");
 let RoomService = class RoomService {
-    roomRepository;
-    constructor(roomRepository) {
+    constructor(roomRepository, reserveRepository) {
         this.roomRepository = roomRepository;
+        this.reserveRepository = reserveRepository;
     }
+    // Criar sala
     async create(createRoomDto) {
+        // Verifica se já existe uma sala com esse nome
         const existingRoom = await this.roomRepository.findOne({
             where: { name: createRoomDto.name },
         });
@@ -32,11 +35,13 @@ let RoomService = class RoomService {
         const room = this.roomRepository.create(createRoomDto);
         return await this.roomRepository.save(room);
     }
+    // Listar todas as salas
     async findAll() {
         return await this.roomRepository.find({
             order: { name: 'ASC' },
         });
     }
+    // Buscar sala por ID
     async findOne(id) {
         const room = await this.roomRepository.findOne({ where: { id } });
         if (!room) {
@@ -44,8 +49,10 @@ let RoomService = class RoomService {
         }
         return room;
     }
+    // Atualizar sala
     async update(id, updateRoomDto) {
         const room = await this.findOne(id);
+        // Se está tentando mudar o nome, verifica se já existe
         if (updateRoomDto.name && updateRoomDto.name !== room.name) {
             const existingRoom = await this.roomRepository.findOne({
                 where: { name: updateRoomDto.name },
@@ -57,10 +64,19 @@ let RoomService = class RoomService {
         Object.assign(room, updateRoomDto);
         return await this.roomRepository.save(room);
     }
+    // Deletar sala
     async remove(id) {
-        const room = await this.findOne(id);
+        const room = await this.roomRepository.findOne({ where: { id } });
+        if (!room) {
+            throw new common_1.NotFoundException("Sala não encontrada");
+        }
+        // Aqui deleta todas as reservas da sala selecionada
+        await this.reserveRepository.delete({ room: { id } });
+        // Aqui deleta a sala
         await this.roomRepository.remove(room);
+        return { message: 'Sala e reservas deletadas com sucesso!' };
     }
+    // Buscar salas disponíveis
     async findAvailable() {
         return await this.roomRepository.find({
             where: { isAvailable: true },
@@ -72,6 +88,8 @@ exports.RoomService = RoomService;
 exports.RoomService = RoomService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(room_entity_1.RoomEntity)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __param(1, (0, typeorm_1.InjectRepository)(reserve_entity_1.ReserveEntity)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository])
 ], RoomService);
 //# sourceMappingURL=room.service.js.map

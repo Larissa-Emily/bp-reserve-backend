@@ -13,13 +13,6 @@ exports.UserEntity = void 0;
 const typeorm_1 = require("typeorm");
 const reserve_entity_1 = require("../../reserve/interface/reserve.entity");
 let UserEntity = class UserEntity {
-    id;
-    name;
-    sector;
-    email;
-    password;
-    role;
-    reservations;
 };
 exports.UserEntity = UserEntity;
 __decorate([
@@ -35,6 +28,14 @@ __decorate([
     __metadata("design:type", String)
 ], UserEntity.prototype, "sector", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ name: 'function', nullable: false }),
+    __metadata("design:type", String)
+], UserEntity.prototype, "functionUser", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'phone', nullable: false }),
+    __metadata("design:type", String)
+], UserEntity.prototype, "phone", void 0);
+__decorate([
     (0, typeorm_1.Column)({ name: 'email', nullable: false }),
     __metadata("design:type", String)
 ], UserEntity.prototype, "email", void 0);
@@ -46,6 +47,14 @@ __decorate([
     (0, typeorm_1.Column)({ name: 'role', nullable: false }),
     __metadata("design:type", String)
 ], UserEntity.prototype, "role", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: 0 }),
+    __metadata("design:type", Number)
+], UserEntity.prototype, "failed_attempts", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamptz', nullable: true }),
+    __metadata("design:type", Object)
+], UserEntity.prototype, "lock_until", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => reserve_entity_1.ReserveEntity, reservation => reservation.user),
     __metadata("design:type", Array)

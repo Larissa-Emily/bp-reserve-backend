@@ -19,32 +19,25 @@ const createRoom_dto_1 = require("./dto/createRoom.dto");
 const updateRoom_dto_1 = require("./dto/updateRoom.dto");
 const roles_decorator_1 = require("../decorators/roles.decorator");
 let RoomController = class RoomController {
-    roomService;
     constructor(roomService) {
         this.roomService = roomService;
     }
     create(createRoomDto) {
-        console.log('🔵 [POST /room] Criando sala:', createRoomDto.name);
         return this.roomService.create(createRoomDto);
     }
     findAll() {
-        console.log('🔵 [GET /room] Listando todas as salas');
         return this.roomService.findAll();
     }
     findAvailable() {
-        console.log('🔵 [GET /room/available] Listando salas disponíveis');
         return this.roomService.findAvailable();
     }
     findOne(id) {
-        console.log('🔵 [GET /room/:id] Buscando sala:', id);
         return this.roomService.findOne(+id);
     }
     update(id, updateRoomDto) {
-        console.log('🔵 [PATCH /room/:id] Atualizando sala:', id);
         return this.roomService.update(+id, updateRoomDto);
     }
     remove(id) {
-        console.log('🔵 [DELETE /room/:id] Deletando sala:', id);
         return this.roomService.remove(+id);
     }
 };

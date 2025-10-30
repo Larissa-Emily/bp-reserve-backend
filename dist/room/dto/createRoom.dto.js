@@ -12,11 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateRoomDto = void 0;
 const class_validator_1 = require("class-validator");
 class CreateRoomDto {
-    name;
-    description;
-    capacity;
-    location;
-    isAvailable;
 }
 exports.CreateRoomDto = CreateRoomDto;
 __decorate([

@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { jwtConstants } from "src/login/constants";
+import { jwtConstants } from "../login/constants";
 import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator'; // adiciona
 import { Reflector } from "@nestjs/core";
@@ -9,7 +9,7 @@ import { Reflector } from "@nestjs/core";
 export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
-    private reflector: Reflector
+    private reflector: Reflector // para ler metadados das rotas (publica ou protegida)
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

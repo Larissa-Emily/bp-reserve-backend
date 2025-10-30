@@ -15,12 +15,12 @@ const core_1 = require("@nestjs/core");
 const roles_decorator_1 = require("../decorators/roles.decorator");
 const public_decorator_1 = require("../decorators/public.decorator");
 let RolesGuard = class RolesGuard {
-    reflector;
     constructor(reflector) {
         this.reflector = reflector;
     }
     canActivate(context) {
         console.log('🔒 [RolesGuard] Verificando permissões...');
+        // Verifica se a rota é pública
         const isPublic = this.reflector.getAllAndOverride(public_decorator_1.IS_PUBLIC_KEY, [
             context.getHandler(),
             context.getClass(),
@@ -30,22 +30,26 @@ let RolesGuard = class RolesGuard {
             console.log('✅ [RolesGuard] Rota pública, liberando...');
             return true;
         }
+        // Pega o usuário da requisição
         const { user } = context.switchToHttp().getRequest();
         console.log('👤 [RolesGuard] User payload:', user);
         if (!user || !user.role) {
             console.log('❌ [RolesGuard] Usuário sem role!');
             throw new common_1.ForbiddenException('Usuário sem permissão definida');
         }
+        // Pega as roles necessárias do decorator @Roles()
         const requiredRoles = this.reflector.getAllAndOverride(roles_decorator_1.ROLES_KEY, [
             context.getHandler(),
             context.getClass(),
         ]);
         console.log('🔑 [RolesGuard] Roles necessárias:', requiredRoles);
         console.log('👤 [RolesGuard] Role do usuário:', user.role);
+        // Se não tem @Roles() definido, bloqueia (como você configurou)
         if (!requiredRoles || requiredRoles.length === 0) {
             console.log('❌ [RolesGuard] Rota sem roles definidas!');
             throw new common_1.ForbiddenException('Rota sem permissões definidas');
         }
+        // Verifica se o usuário tem alguma das roles necessárias
         const hasRole = requiredRoles.some((role) => user.role === role);
         console.log('✅ [RolesGuard] Tem permissão?', hasRole);
         if (!hasRole) {
