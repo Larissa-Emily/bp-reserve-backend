@@ -58,7 +58,6 @@ async findByUser(@Param('userId') userId: string) {
   @Delete(':id')
   async remove(@Param('id') id: string, @Req() req: Request) {
     const user = req.user as JwtPayload;
-    console.log(`🔵 [DELETE /reservation/:id] Cancelando ${id} pelo usuário ${user.sub}`);
     return this.reserveService.remove(+id, user.sub, user.role);
   }
 }

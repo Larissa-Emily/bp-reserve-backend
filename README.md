@@ -91,7 +91,7 @@ Todas as rotas (exceto as definidas como públicas via @Public()) exigem que o u
 
 Authorization: Bearer
 
-O token é gerado após o login bem-sucedido (rota /auth).
+O token é gerado após o login bem-sucedido (rota /auth). Tem a duração de 1h.
 
 O AuthGuard valida o token antes de permitir o acesso à rota.
 O RolesGuard, em conjunto com o @Roles(), define o nível de acesso permitido (ex: admin, user).

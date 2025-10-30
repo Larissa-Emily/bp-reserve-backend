@@ -22,31 +22,30 @@ export class ReserveService {
 
 
 
-    /** 🔍 Validações de reserva */
     private async validateReservation(
         dto: CreateReservationDto | UpdateReservationDto,
         existingReservationId?: number, // usado em updates
     ): Promise<void> {
         const { date, startTime, endTime, roomId, userId } = dto;
 
-        // 🧩 1. Verificação de campos obrigatórios
+        // Verificação de campos obrigatórios
         if (!roomId) throw new NotFoundException('O ID da sala é obrigatório.');
         if (!userId) throw new NotFoundException('O ID do usuário é obrigatório.');
         if (!date) throw new NotFoundException('A data da reserva é obrigatória.');
         if (!startTime || !endTime)
             throw new NotFoundException('Os horários de início e término são obrigatórios.');
 
-        // 🧱 2. Verifica se a sala existe e está disponível
+        // Verifica se a sala existe e está disponível
         const room = await this.roomService.findOne(roomId);
         if (!room) throw new NotFoundException(`Sala com ID ${roomId} não encontrada.`);
         if (!room.isAvailable)
             throw new NotFoundException(`A sala "${room.name}" não está disponível para reservas.`);
 
-        // 👤 3. Verifica se o usuário existe
+        // Verifica se o usuário existe
         const user = await this.userService.getUserById(userId);
         if (!user) throw new NotFoundException(`Usuário com ID ${userId} não encontrado.`);
 
-        // 📅 4. Verificações de tempo
+        //  Verificações de tempo
         const [year, month, day] = date.split('-').map(Number);
         const [startHour, startMinute] = startTime.split(':').map(Number);
         const [endHour, endMinute] = endTime.split(':').map(Number);
@@ -72,7 +71,7 @@ export class ReserveService {
             );
         }
 
-        // ⏰ 5. Verifica sobreposição
+        // Verifica sobreposição
         const overlappingReservations = await this.reservationRepository
             .createQueryBuilder('reservation')
             .where('reservation.roomId = :roomId', { roomId })
@@ -96,7 +95,6 @@ export class ReserveService {
         }
     }
 
-    /** 🟢 Criar reserva */
     async create(createReservationDto: CreateReservationDto): Promise<ReserveEntity> {
         await this.validateReservation(createReservationDto);
 
@@ -105,7 +103,6 @@ export class ReserveService {
         return savedReservation;
     }
 
-    /** 📋 Listar todas as reservas */
     async findAll(): Promise<ReserveEntity[]> {
         return await this.reservationRepository.find({
             relations: ['room', 'user'],
@@ -113,7 +110,6 @@ export class ReserveService {
         });
     }
 
-    /** 🔍 Buscar reserva por ID */
     async findOne(id: number): Promise<ReserveEntity> {
         const reservation = await this.reservationRepository.findOne({
             where: { id },
@@ -145,7 +141,6 @@ export class ReserveService {
     ): Promise<ReserveEntity> {
         const reservation = await this.findOne(id);
 
-        // 🔒 Permissão
         if (
             requestingUserRole !== 'manager' &&
             reservation.userId !== requestingUserId
@@ -155,7 +150,6 @@ export class ReserveService {
             );
         }
 
-        // ✅ Valida nova reserva
         await this.validateReservation(
             {
                 ...reservation,
@@ -170,11 +164,9 @@ export class ReserveService {
         Object.assign(reservation, updateReservationDto);
         const updatedReservation = await this.reservationRepository.save(reservation);
 
-        console.log('✅ [ReservationService.update] Reserva atualizada:', updatedReservation);
         return updatedReservation;
     }
 
-    /** ❌ Cancelar reserva */
     async remove(
         id: number,
         requestingUserId: number,
@@ -182,7 +174,6 @@ export class ReserveService {
     ): Promise<void> {
         const reservation = await this.findOne(id);
 
-        // 🔒 Permissão
         if (
             requestingUserRole !== 'manager' &&
             reservation.userId !== requestingUserId
@@ -193,6 +184,5 @@ export class ReserveService {
         }
 
         await this.reservationRepository.remove(reservation);
-        console.log('✅ [ReservationService.remove] Reserva cancelada:', id);
     }
 }
