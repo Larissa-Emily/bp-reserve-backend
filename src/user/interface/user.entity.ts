@@ -13,7 +13,7 @@ export class UserEntity {
     functionUser!: string;
     @Column({ name: 'phone', nullable: false })
     phone!: string;
-    @Column({ name: 'email', nullable: false })
+    @Column({ name: 'email', nullable: false, unique: true })
     email!: string;
     @Column({ name: 'password', nullable: false })
     password!: string;
